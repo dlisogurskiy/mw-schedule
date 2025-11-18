@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MW Event Schedule</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@500;700&display=swap');
+
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+            border: 2px solid #06b6d4;
+            width: 450px;
+            position: relative;
+        }
+
+        h2 {
+            text-align: center;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0;
+            text-shadow: 0 0 10px #06b6d4;
+        }
+
+        /* --- CONTROLS SECTION --- */
+        .controls {
+            margin: 15px 0;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        select {
+            background-color: #0f172a;
+            color: #67e8f9;
+            border: 1px solid #334155;
+            padding: 8px;
+            border-radius: 5px;
+            font-family: 'Roboto', sans-serif;
+            width: 100%;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .clock-display {
+            color: #94a3b8;
+            font-size: 0.9em;
+        }
+
+        /* --- TABLE STYLES --- */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 5px;
+        }
+
+        th {
+            color: #06b6d4;
+            padding: 12px;
+            text-transform: uppercase;
+            border-bottom: 2px solid #334155;
+            font-size: 1.1em;
+        }
+
+        td {
+            padding: 12px 15px;
+            background-color: #1e293b;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        /* Round corners for rows */
+        tr td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        tr td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+
+        .time-col {
+            text-align: center;
+            font-weight: bold;
+            color: #cbd5e1;
+            width: 30%;
+            font-family: monospace;
+            font-size: 1.2em;
+        }
+
+        .event-col {
+            text-align: left;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Icon Colors */
+        .icon { font-size: 1.2em; width: 25px; text-align: center; }
+        .snow { color: #67e8f9; }
+        .football { color: #4ade80; }
+        .koth { color: #fbbf24; }
+        .tvt { color: #f87171; }
+        .hero { color: #a855f7; }
+
+        /* --- ACTIVE EVENT STYLES --- */
+        tr.active td {
+            background-color: #0f3847;
+            color: #fff;
+            border-top: 2px solid #4ade80;
+            border-bottom: 2px solid #4ade80;
+        }
+        
+        tr.active td:first-child { border-left: 2px solid #4ade80; }
+        tr.active td:last-child { border-right: 2px solid #4ade80; }
+
+        tr.active { animation: pulse 2s infinite; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+            70% { box-shadow: 0 0 10px 10px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+
+        .active-badge {
+            font-size: 0.7em;
+            background: #4ade80;
+            color: #0f172a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Event Schedule</h2>
+        
+        <div class="controls">
+            <select id="timezoneSelect" onchange="updateSchedule()">
+                </select>
+            <div class="clock-display" id="clock">Loading time...</div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Event</th>
+                </tr>
+            </thead>
+            <tbody id="scheduleBody">
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        // --- MASTER DATA (UTC+3) ---
+        // We store the base schedule here. The code calculates the rest.
+        const baseEvents = [
+            { time: "02:00", name: "Snow Fight", type: "snow", icon: "❄️" },
+            { time: "04:00", name: "Football", type: "football", icon: "⚽" },
+            { time: "06:00", name: "King of the Hill", type: "koth", icon: "👑" },
+            { time: "08:00", name: "Team vs Team", type: "tvt", icon: "⚔️" },
+            { time: "10:00", name: "Snow Fight", type: "snow", icon: "❄️" },
+            { time: "12:00", name: "Football", type: "football", icon: "⚽" },
+            { time: "14:00", name: "King of the Hill", type: "koth", icon: "👑" },
+            { time: "16:00", name: "Team vs Team", type: "tvt", icon: "⚔️" },
+            { time: "18:00", name: "Football", type: "football", icon: "⚽" },
+            { time: "19:00", name: "King of the Hill", type: "koth", icon: "👑" },
+            { time: "20:00", name: "Team vs Team", type: "tvt", icon: "⚔️" },
+            { time: "21:00", name: "Snow Fight", type: "snow", icon: "❄️" },
+            { time: "21:30", name: "Last Hero", type: "hero", icon: "🏆" },
+            { time: "22:00", name: "Football", type: "football", icon: "⚽" },
+            { time: "23:00", name: "King of the Hill", type: "koth", icon: "👑" },
+            { time: "00:00", name: "Team vs Team", type: "tvt", icon: "⚔️" } 
+        ];
+
+        const BASE_OFFSET = 3; // The data above is in UTC+3
+
+        // --- TIMEZONE LIST ---
+        const timezones = [
+            { label: "Hawaii (UTC-10)", offset: -10 },
+            { label: "Los Angeles / PT (UTC-8)", offset: -8 },
+            { label: "New York / ET (UTC-5)", offset: -5 },
+            { label: "Sao Paulo (UTC-3)", offset: -3 },
+            { label: "London / UTC (UTC+0)", offset: 0 },
+            { label: "Berlin / CET (UTC+1)", offset: 1 },
+            { label: "Kyiv / EET (UTC+2)", offset: 2 },
+            { label: "Moscow / MSK (UTC+3)", offset: 3 },
+            { label: "Dubai (UTC+4)", offset: 4 },
+            { label: "India (UTC+5.5)", offset: 5.5 },
+            { label: "Bangkok (UTC+7)", offset: 7 },
+            { label: "Singapore / China (UTC+8)", offset: 8 },
+            { label: "Tokyo (UTC+9)", offset: 9 },
+            { label: "Sydney (UTC+11)", offset: 11 }
+        ];
+
+        function init() {
+            const select = document.getElementById('timezoneSelect');
+            
+            // 1. Determine User's Local Offset
+            // getTimezoneOffset returns minutes BEHIND UTC. So -120 means UTC+2.
+            const localOffset = -(new Date().getTimezoneOffset() / 60);
+            
+            // Check if local offset is in our list, if not, add it dynamically as "Local"
+            const knownTz = timezones.find(tz => tz.offset === localOffset);
+            let defaultLabel = `Local Time (UTC${localOffset >= 0 ? '+' : ''}${localOffset})`;
+            
+            if (!knownTz) {
+                // Add local option to top if not standard
+                const localOption = document.createElement('option');
+                localOption.value = localOffset;
+                localOption.text = defaultLabel;
+                select.add(localOption);
+            }
+
+            // 2. Populate Dropdown
+            timezones.forEach(tz => {
+                const opt = document.createElement('option');
+                opt.value = tz.offset;
+                opt.text = tz.label;
+                if (tz.offset === localOffset) opt.selected = true;
+                select.add(opt);
+            });
+
+            // 3. Initial Render
+            updateSchedule();
+            
+            // 4. Update clock every minute
+            setInterval(updateSchedule, 60000);
+        }
+
+        function updateSchedule() {
+            const select = document.getElementById('timezoneSelect');
+            const targetOffset = parseFloat(select.value);
+            const tbody = document.getElementById('scheduleBody');
+            
+            tbody.innerHTML = ''; // Clear current list
+
+            // Process events
+            let displayEvents = baseEvents.map(event => {
+                // Parse base time (UTC+3)
+                const [h, m] = event.time.split(':').map(Number);
+                
+                // Convert to minutes, apply offset difference
+                let totalMinutes = (h * 60 + m) - (BASE_OFFSET * 60) + (targetOffset * 60);
+                
+                // Handle day wrap-around
+                if (totalMinutes < 0) totalMinutes += 1440;
+                if (totalMinutes >= 1440) totalMinutes -= 1440;
+
+                const newH = Math.floor(totalMinutes / 60);
+                const newM = totalMinutes % 60;
+                
+                const timeString = `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
+                
+                return { ...event, displayTime: timeString, minutes: totalMinutes };
+            });
+
+            // Sort events by time
+            displayEvents.sort((a, b) => a.minutes - b.minutes);
+
+            // Current Time Calculation for Highlighting
+            const now = new Date();
+            const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+            const currentTargetMinutes = utcMinutes + (targetOffset * 60);
+            
+            // Normalize current time to 0-1439 range
+            let normalizedNow = currentTargetMinutes;
+            while (normalizedNow < 0) normalizedNow += 1440;
+            while (normalizedNow >= 1440) normalizedNow -= 1440;
+
+            // Find next event
+            let nextEventIndex = -1;
+            for (let i = 0; i < displayEvents.length; i++) {
+                if (displayEvents[i].minutes > normalizedNow) {
+                    nextEventIndex = i;
+                    break;
+                }
+            }
+            // If no event found today, highlight first of tomorrow
+            if (nextEventIndex === -1 && displayEvents.length > 0) nextEventIndex = 0;
+
+            // Render Rows
+            displayEvents.forEach((event, index) => {
+                const tr = document.createElement('tr');
+                if (index === nextEventIndex) {
+                    tr.className = 'active';
+                }
+
+                const badge = index === nextEventIndex ? '<span class="active-badge">NEXT UP</span>' : '';
+
+                tr.innerHTML = `
+                    <td class="time-col">${event.displayTime}</td>
+                    <td class="event-col">
+                        <span class="icon ${event.type}">${event.icon}</span> 
+                        ${event.name}
+                        ${badge}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update Clock Display
+            const nowH = Math.floor(normalizedNow / 60);
+            const nowM = Math.floor(normalizedNow % 60);
+            document.getElementById('clock').innerText = 
+                `Current Selected Time: ${String(nowH).padStart(2, '0')}:${String(nowM).padStart(2, '0')}`;
+        }
+
+        // Start
+        init();
+
+    </script>
+</body>
+</html>
