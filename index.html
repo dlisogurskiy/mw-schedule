@@ -17,6 +17,7 @@
             min-height: 100vh;
             margin: 0;
             padding: 20px;
+            box-sizing: border-box; /* Ensures padding doesn't break width */
         }
 
         .container {
@@ -25,7 +26,9 @@
             border-radius: 15px;
             box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
             border: 2px solid #06b6d4;
-            width: 450px;
+            /* --- CHANGED: FLEXIBLE WIDTH --- */
+            width: 100%; 
+            max-width: 450px; 
             position: relative;
         }
 
@@ -143,6 +146,26 @@
             font-weight: bold;
             margin-left: auto;
         }
+
+        /* --- NEW: MOBILE RESPONSIVENESS --- */
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px 10px; /* Less padding on sides */
+            }
+            th, td {
+                padding: 10px 5px; /* Tighter cells */
+                font-size: 0.95em; /* Slightly smaller font */
+            }
+            h2 {
+                font-size: 1.4em;
+            }
+            .icon {
+                width: 20px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -170,7 +193,6 @@
 
     <script>
         // --- MASTER DATA (UTC+3) ---
-        // We store the base schedule here. The code calculates the rest.
         const baseEvents = [
             { time: "02:00", name: "Snow Fight", type: "snow", icon: "❄️" },
             { time: "04:00", name: "Football", type: "football", icon: "⚽" },
@@ -214,7 +236,6 @@
             const select = document.getElementById('timezoneSelect');
             
             // 1. Determine User's Local Offset
-            // getTimezoneOffset returns minutes BEHIND UTC. So -120 means UTC+2.
             const localOffset = -(new Date().getTimezoneOffset() / 60);
             
             // Check if local offset is in our list, if not, add it dynamically as "Local"
@@ -222,7 +243,6 @@
             let defaultLabel = `Local Time (UTC${localOffset >= 0 ? '+' : ''}${localOffset})`;
             
             if (!knownTz) {
-                // Add local option to top if not standard
                 const localOption = document.createElement('option');
                 localOption.value = localOffset;
                 localOption.text = defaultLabel;
@@ -254,13 +274,9 @@
 
             // Process events
             let displayEvents = baseEvents.map(event => {
-                // Parse base time (UTC+3)
                 const [h, m] = event.time.split(':').map(Number);
-                
-                // Convert to minutes, apply offset difference
                 let totalMinutes = (h * 60 + m) - (BASE_OFFSET * 60) + (targetOffset * 60);
                 
-                // Handle day wrap-around
                 if (totalMinutes < 0) totalMinutes += 1440;
                 if (totalMinutes >= 1440) totalMinutes -= 1440;
 
@@ -293,7 +309,6 @@
                     break;
                 }
             }
-            // If no event found today, highlight first of tomorrow
             if (nextEventIndex === -1 && displayEvents.length > 0) nextEventIndex = 0;
 
             // Render Rows
@@ -323,9 +338,7 @@
                 `Current Selected Time: ${String(nowH).padStart(2, '0')}:${String(nowM).padStart(2, '0')}`;
         }
 
-        // Start
         init();
-
     </script>
 </body>
 </html>
