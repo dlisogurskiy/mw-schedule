@@ -637,37 +637,26 @@
             const tbody = document.getElementById('destructBody');
             tbody.innerHTML = '';
 
-            // 1. Get Base Anchor from Picker
             let anchorMins = destructH * 60 + destructM;
             
-            // 2. Get Current Time (Timezone Aware)
             const select = document.getElementById('timezoneSelect');
             const targetOffset = parseFloat(select.value || -(new Date().getTimezoneOffset() / 60));
             const now = new Date();
             const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
             
-            // Normalize current time to 0-1440 range based on selected timezone
             let currentMins = utcMinutes + (targetOffset * 60);
             while (currentMins < 0) currentMins += 1440;
             while (currentMins >= 1440) currentMins -= 1440;
 
-            // 3. Smart Fast-Forward:
-            // If the Anchor is currently BEHIND the current time, add 4h (240m) until it's future.
-            // Edge Case: If Input is 23:00 and Now is 01:00, 23:00 > 01:00.
-            // Logic: Assume the input refers to "Start of Cycle" (potentially yesterday).
-            // If Anchor > Current, subtract 24h to treat it as yesterday, then add 4h steps.
-            
             let effectiveAnchor = anchorMins;
             if (effectiveAnchor > currentMins) {
-                effectiveAnchor -= 1440; // Treat as yesterday
+                effectiveAnchor -= 1440; 
             }
 
-            // Loop until we find the first FUTURE spawn
             while (effectiveAnchor <= currentMins) {
                 effectiveAnchor += 240;
             }
 
-            // 4. Generate List from that point
             let tempMins = effectiveAnchor;
 
             for(let i=1; i<=5; i++) {
@@ -680,15 +669,24 @@
                 const timeStr = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
                 
                 const tr = document.createElement('tr');
-                if (i === 1) tr.className = 'active';
+                let badge = '';
+
+                // ADDED BADGE LOGIC HERE
+                if (i === 1) {
+                    tr.className = 'active';
+                    badge = '<span class="active-badge">NEXT</span>';
+                }
 
                 tr.innerHTML = `
                     <td class="time-col" style="color:#fca5a5">${timeStr}</td>
-                    <td class="event-col"><span class="icon skull">💀</span> Spawn #${i}</td>
+                    <td class="event-col">
+                        <span class="icon skull">💀</span> Spawn #${i}
+                        ${badge}
+                    </td>
                 `;
                 tbody.appendChild(tr);
 
-                tempMins += 240; // Add 4h for next row
+                tempMins += 240; 
             }
         }
 
@@ -706,7 +704,7 @@
             { name: "Schuttgart", count: 1, lvl: 60 }, 
             { name: "Giran", count: 3, lvl: 60 },
             { name: "Oren", count: 3, lvl: 60 },
-            { name: "Aden", count: 3, lvl: 75 },
+            { name: "Aden", count: 3, lvl: 76 },
             { name: "Goddard", count: 2, lvl: 80 }
         ];
 
