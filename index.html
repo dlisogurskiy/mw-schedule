@@ -795,9 +795,10 @@
             });
         }
 
+		// ==========================================
+        //      PART 3: EPIC BOSSES (Corrected Data)
         // ==========================================
-        //      PART 3: EPIC BOSSES (Smart Logic)
-        // ==========================================
+        // Days: 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat, -1=Daily
         const epics = [
             { name: "Ant Queen", day: -1, time: "20:00", icon: "🐜", style: "aq" },
             { name: "Orfen", day: -1, time: "20:00", icon: "🕷️", style: "orfen" },
@@ -821,66 +822,86 @@
             updateEpics();
         }
 
-        function updateEpics() {
+function updateEpics() {
             const select = document.getElementById('timezoneSelect');
+            // Default to computer time if select is empty, but we expect it to be populated
             const targetOffset = parseFloat(select.value || -(new Date().getTimezoneOffset() / 60));
+            
             const tbody = document.getElementById('epicBody');
             tbody.innerHTML = '';
 
+            // 1. Get Current World Time in UTC (No timezone bias)
             const now = new Date();
-            const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
-            const targetTime = new Date(utcTime + (3600000 * targetOffset));
+            const currentUTC = now.getTime() + (now.getTimezoneOffset() * 60000);
             
-            // 1. Calculate Next Occurrence for All
+            // 2. Calculate the Target "Wall Clock" time for comparison (Today/Tomorrow logic)
+            // This is the time currently displayed on the user's selected clock
+            const targetNowTimestamp = currentUTC + (targetOffset * 3600000);
+            const targetNowDate = new Date(targetNowTimestamp);
+
             let fullList = epics.map(epic => {
                 const [h, m] = epic.time.split(':').map(Number);
-                let baseDate = new Date();
-                baseDate.setUTCHours(h - 3, m, 0, 0); 
-                let localDate = new Date(baseDate.getTime() + (3600000 * targetOffset));
                 
-                if (epic.day === -1) {
-                    if (localDate < targetTime) {
-                        localDate.setDate(localDate.getDate() + 1);
-                    }
-                } else {
-                    let serverNow = new Date(utcTime + (3600000 * 3));
-                    let serverBoss = new Date(serverNow);
-                    serverBoss.setHours(h, m, 0, 0);
+                // --- A. Convert Server Time (UTC+3) to standard UTC ---
+                // 20:00 Server = 17:00 UTC. 
+                const bossBaseHourUTC = h - 3; 
+                
+                // --- B. Find the Next Occurrence in UTC ---
+                // Start by assuming it's Today
+                let nextSpawnUTC = new Date(currentUTC);
+                nextSpawnUTC.setUTCHours(bossBaseHourUTC, m, 0, 0);
+
+                if (epic.day !== -1) {
+                    // Weekly Boss: Find the correct day of week
+                    const currentDay = nextSpawnUTC.getUTCDay(); // 0-6
+                    let daysUntil = epic.day - currentDay;
                     
-                    let dayDiff = epic.day - serverNow.getDay();
-                    if (dayDiff < 0) dayDiff += 7;
-                    if (dayDiff === 0 && serverBoss < serverNow) dayDiff = 7;
+                    if (daysUntil < 0) daysUntil += 7; // e.g. Today Fri(5), Boss Mon(1) -> Add 3 days
                     
-                    serverBoss.setDate(serverBoss.getDate() + dayDiff);
-                    let bossUTC = serverBoss.getTime() - (3600000 * 3);
-                    localDate = new Date(bossUTC + (3600000 * targetOffset));
+                    nextSpawnUTC.setUTCDate(nextSpawnUTC.getUTCDate() + daysUntil);
                 }
 
-                return { ...epic, sortDate: localDate };
+                // --- C. Check if this time has already passed in reality ---
+                // We compare the Calculated UTC Spawn time vs Real UTC Time
+                if (nextSpawnUTC.getTime() < currentUTC) {
+                    // It passed! Move to next cycle.
+                    if (epic.day === -1) {
+                        nextSpawnUTC.setUTCDate(nextSpawnUTC.getUTCDate() + 1); // Daily: +1 Day
+                    } else {
+                        nextSpawnUTC.setUTCDate(nextSpawnUTC.getUTCDate() + 7); // Weekly: +7 Days
+                    }
+                }
+
+                // --- D. Convert to Display Timezone ---
+                // We add the Target Offset to the UTC timestamp.
+                // We will read this using getUTC methods to simulate "Local Time"
+                const displayTimestamp = nextSpawnUTC.getTime() + (targetOffset * 3600000);
+                const displayDate = new Date(displayTimestamp);
+
+                return { 
+                    ...epic, 
+                    realSpawnTimestamp: nextSpawnUTC.getTime(), // Used for sorting chronologically
+                    displayDate: displayDate // Used for rendering text
+                };
             });
 
-            // 2. Filter based on Mode
+            // 3. Filter & Sort
             let displayList = [];
             
             if (epicMode === 'today') {
-                // Filter: Only show if Next Occurrence IS Today
-                // Note: The logic above finds the NEXT FUTURE occurrence.
-                // So if it's currently 22:00 and boss was 20:00, sortDate will be Tomorrow.
-                // Therefore, checking if sortDate is Today automatically excludes passed bosses.
+                // Check if the calculated display date matches the User's "Current Date"
                 displayList = fullList.filter(item => {
-                    return item.sortDate.getDate() === targetTime.getDate() && 
-                           item.sortDate.getMonth() === targetTime.getMonth() &&
-                           item.sortDate.getFullYear() === targetTime.getFullYear();
+                    return item.displayDate.getUTCDate() === targetNowDate.getUTCDate() && 
+                           item.displayDate.getUTCMonth() === targetNowDate.getUTCMonth();
                 });
             } else {
-                // Upcoming: Show all, sorted by date
                 displayList = fullList;
             }
 
-            // Sort
-            displayList.sort((a, b) => a.sortDate - b.sortDate);
+            // Sort Chronologically (Next up first)
+            displayList.sort((a, b) => a.realSpawnTimestamp - b.realSpawnTimestamp);
 
-            // Render
+            // 4. Render
             if (displayList.length === 0 && epicMode === 'today') {
                 tbody.innerHTML = `
                     <tr>
@@ -896,11 +917,17 @@
             const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
             
             displayList.forEach(item => {
-                const date = item.sortDate;
-                const dayName = days[date.getDay()];
-                const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                const date = item.displayDate;
+                // Use UTC methods because we manually shifted the timestamp to match the target timezone
+                const dayName = days[date.getUTCDay()];
+                const hh = String(date.getUTCHours()).padStart(2, '0');
+                const mm = String(date.getUTCMinutes()).padStart(2, '0');
+                const timeStr = `${hh}:${mm}`;
                 
-                const isToday = date.getDate() === targetTime.getDate() && date.getMonth() === targetTime.getMonth();
+                // Highlight "Today"
+                const isToday = date.getUTCDate() === targetNowDate.getUTCDate() && 
+                                date.getUTCMonth() === targetNowDate.getUTCMonth();
+                
                 const dayBadge = isToday ? `<span class="day-badge">Today</span>` : dayName;
                 const rowClass = isToday ? 'today' : '';
 
