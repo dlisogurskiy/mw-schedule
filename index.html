@@ -13,20 +13,21 @@
             font-family: 'Roboto', sans-serif;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 100vh;
             margin: 0;
-            padding: 20px;
+            padding: 40px 20px;
             box-sizing: border-box;
             touch-action: manipulation; 
         }
 
+        /* --- 1. LAYOUT: 3 COLUMNS --- */
         .main-wrapper {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(3, 1fr); /* 3 Equal Columns */
             gap: 20px;
             width: 100%;
-            max-width: 900px;
+            max-width: 1200px; /* Wider to fit 3 cols */
         }
 
         .container {
@@ -38,11 +39,17 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            min-height: 500px; /* Align heights roughly */
         }
 
         .destruct-container {
             border-color: #f87171;
             box-shadow: 0 0 20px rgba(248, 113, 113, 0.3);
+        }
+
+        .epic-container {
+            border-color: #a855f7;
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
         }
 
         h2 {
@@ -159,7 +166,7 @@
             margin-top: -4px;
         }
 
-        /* Main Buttons */
+        /* BUTTONS */
         .action-buttons {
             display: flex;
             gap: 10px;
@@ -176,6 +183,13 @@
             text-transform: uppercase;
             font-size: 0.9em;
             transition: background 0.2s;
+            background: #334155;
+            color: #cbd5e1;
+        }
+        
+        .btn-main.active {
+            background: #a855f7;
+            color: #fff;
         }
 
         .btn-edit { background: #f87171; color: #0f172a; }
@@ -226,6 +240,7 @@
         }
 
         .destruct-container th { color: #f87171; }
+        .epic-container th { color: #d8b4fe; }
 
         td {
             padding: 10px 12px;
@@ -241,7 +256,7 @@
             text-align: center;
             font-weight: bold;
             color: #cbd5e1;
-            width: 35%;
+            width: 30%;
             font-family: monospace;
             font-size: 1.1em;
         }
@@ -255,14 +270,26 @@
         }
 
         .icon { font-size: 1.2em; width: 25px; text-align: center; }
+        
+        /* ICONS */
         .snow { color: #67e8f9; }
         .football { color: #4ade80; }
         .koth { color: #fbbf24; }
         .tvt { color: #f87171; }
         .hero { color: #a855f7; }
         .skull { color: #f87171; }
+        .aq { color: #fbbf24; } 
+        .core { color: #60a5fa; } 
+        .orfen { color: #34d399; } 
+        .baium { color: #ef4444; } 
+        .helios { color: #fbbf24; }
+        .kelbim { color: #a855f7; }
+        .lind { color: #a5f3fc; } 
+        .faf { color: #3b82f6; } 
+        .val { color: #ef4444; } 
+        .ant { color: #d97706; } 
 
-        /* --- ACTIVE / PAST STYLES --- */
+        /* STATES */
         tr.active td {
             background-color: #0f3847;
             color: #fff;
@@ -296,8 +323,22 @@
             font-weight: bold;
             margin-left: auto;
         }
+        
+        .day-badge {
+            font-size: 0.7em;
+            background: #334155;
+            color: #cbd5e1;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: auto;
+        }
+        .today .day-badge {
+            background: #a855f7;
+            color: #fff;
+            font-weight: bold;
+        }
 
-        /* --- LOCATION LIST STYLES --- */
+        /* LOCATION LIST */
         .loc-table td {
             font-size: 0.85em;
             padding: 6px 10px;
@@ -307,9 +348,26 @@
         .loc-count { text-align: center; color: #f87171; font-weight: bold; width: 15%; }
         .loc-name { text-align: left; }
 
-        @media (max-width: 768px) {
-            body { align-items: flex-start; }
-            .main-wrapper { grid-template-columns: 1fr; max-width: 450px; }
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            color: #64748b;
+            padding: 40px 10px;
+            font-style: italic;
+        }
+        .empty-icon {
+            font-size: 3em;
+            display: block;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        /* --- RESPONSIVE: Stack on Tablet/Mobile --- */
+        @media (max-width: 1000px) {
+            .main-wrapper { 
+                grid-template-columns: 1fr; /* Stack all vertically */
+                max-width: 500px;
+            }
             h2 { font-size: 1.3em; }
         }
     </style>
@@ -334,8 +392,7 @@
                         <th>Event</th>
                     </tr>
                 </thead>
-                <tbody id="scheduleBody">
-                    </tbody>
+                <tbody id="scheduleBody"></tbody>
             </table>
         </div>
 
@@ -352,13 +409,11 @@
                         <div style="width:10px;"></div>
                         <div class="tp-col"><button class="tp-btn" onclick="adjustTime(0, 1)">▲</button></div>
                     </div>
-
                     <div class="tp-row">
                         <div class="tp-display" id="displayHH">00</div>
                         <div class="tp-colon">:</div>
                         <div class="tp-display" id="displayMM">34</div>
                     </div>
-
                     <div class="tp-row hidden" id="arrowsDown">
                         <div class="tp-col"><button class="tp-btn" onclick="adjustTime(-1, 0)">▼</button></div>
                         <div style="width:10px;"></div>
@@ -385,8 +440,7 @@
                         <th>Info</th>
                     </tr>
                 </thead>
-                <tbody id="destructBody">
-                    </tbody>
+                <tbody id="destructBody"></tbody>
             </table>
 
             <h3>Spawn Locations</h3>
@@ -398,8 +452,29 @@
                         <th style="text-align:left; padding-left:10px;">Location</th>
                     </tr>
                 </thead>
-                <tbody id="locBody">
-                    </tbody>
+                <tbody id="locBody"></tbody>
+            </table>
+        </div>
+
+        <div class="container epic-container">
+            <h2>Epic Bosses</h2>
+            
+            <div class="controls">
+                <div class="action-buttons">
+                    <button class="btn-main active" id="btnToday" onclick="setEpicMode('today')">Today</button>
+                    <button class="btn-main" id="btnUpcoming" onclick="setEpicMode('upcoming')">Upcoming</button>
+                </div>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Time</th>
+                        <th style="text-align:left">Boss</th>
+                    </tr>
+                </thead>
+                <tbody id="epicBody"></tbody>
             </table>
         </div>
 
@@ -476,6 +551,7 @@
         function handleTimezoneChange() {
             updateSchedule();
             calcDestruction(); 
+            updateEpics(); 
         }
 
         function updateSchedule() {
@@ -534,7 +610,7 @@
         }
 
         // ==========================================
-        //      PART 2: DESTRUCTION (Smart Filter)
+        //      PART 2: DESTRUCTION
         // ==========================================
         const DEFAULT_DESTRUCT_TIME = "00:34";
         
@@ -559,8 +635,6 @@
 
         function calculateSmartDefault() {
             let anchorMins = 0 * 60 + 34;
-            
-            // Get Current Time (Timezone Aware)
             const select = document.getElementById('timezoneSelect');
             const targetOffset = parseFloat(select.value || -(new Date().getTimezoneOffset() / 60));
             const now = new Date();
@@ -638,7 +712,6 @@
             tbody.innerHTML = '';
 
             let anchorMins = destructH * 60 + destructM;
-            
             const select = document.getElementById('timezoneSelect');
             const targetOffset = parseFloat(select.value || -(new Date().getTimezoneOffset() / 60));
             const now = new Date();
@@ -652,7 +725,6 @@
             if (effectiveAnchor > currentMins) {
                 effectiveAnchor -= 1440; 
             }
-
             while (effectiveAnchor <= currentMins) {
                 effectiveAnchor += 240;
             }
@@ -671,7 +743,6 @@
                 const tr = document.createElement('tr');
                 let badge = '';
 
-                // ADDED BADGE LOGIC HERE
                 if (i === 1) {
                     tr.className = 'active';
                     badge = '<span class="active-badge">NEXT</span>';
@@ -685,30 +756,26 @@
                     </td>
                 `;
                 tbody.appendChild(tr);
-
                 tempMins += 240; 
             }
         }
 
-        // ==========================================
-        //      PART 3: LOCATIONS DATA
-        // ==========================================
-        const locations = [
-            { name: "Dark Elf Village", count: 1, lvl: 30 },
-            { name: "Orc Village", count: 1, lvl: 30 },
-            { name: "Dwarven Village", count: 2, lvl: 30 }, 
-            { name: "Gludin Village", count: 3, lvl: 30 },
-            { name: "Heine", count: 2, lvl: 45 },
-            { name: "Dion", count: 3, lvl: 45 },
-            { name: "Gludio", count: 3, lvl: 45 },
-            { name: "Schuttgart", count: 1, lvl: 60 }, 
-            { name: "Giran", count: 3, lvl: 60 },
-            { name: "Oren", count: 3, lvl: 60 },
-            { name: "Aden", count: 3, lvl: 76 },
-            { name: "Goddard", count: 2, lvl: 80 }
-        ];
-
         function renderLocations() {
+            const locations = [
+                { name: "Dark Elf Village", count: 1, lvl: 30 },
+                { name: "Orc Village", count: 1, lvl: 30 },
+                { name: "Dwarven Village", count: 2, lvl: 30 }, 
+                { name: "Gludin Village", count: 3, lvl: 30 },
+                { name: "Heine", count: 2, lvl: 45 },
+                { name: "Dion", count: 3, lvl: 45 },
+                { name: "Gludio", count: 3, lvl: 45 },
+                { name: "Schuttgart", count: 1, lvl: 60 }, 
+                { name: "Giran", count: 3, lvl: 60 },
+                { name: "Oren", count: 3, lvl: 60 },
+                { name: "Aden", count: 3, lvl: 75 },
+                { name: "Goddard", count: 2, lvl: 80 }
+            ];
+
             locations.sort((a, b) => {
                 if (a.lvl !== b.lvl) return a.lvl - b.lvl;
                 return a.count - b.count;
@@ -728,9 +795,133 @@
             });
         }
 
+        // ==========================================
+        //      PART 3: EPIC BOSSES (Smart Logic)
+        // ==========================================
+        const epics = [
+            { name: "Ant Queen", day: -1, time: "20:00", icon: "🐜", style: "aq" },
+            { name: "Orfen", day: -1, time: "20:00", icon: "🕷️", style: "orfen" },
+            { name: "Core", day: -1, time: "20:00", icon: "🤖", style: "core" },
+            { name: "Baium", day: -1, time: "20:00", icon: "🤴", style: "baium" },
+            { name: "Helios", day: 1, time: "21:00", icon: "☀️", style: "helios" },
+            { name: "Kelbim", day: 2, time: "21:00", icon: "⚔️", style: "kelbim" },
+            { name: "Fafurion", day: 3, time: "21:00", icon: "💧", style: "faf" },
+            { name: "Lindivior", day: 4, time: "21:00", icon: "🌪️", style: "lind" },
+            { name: "Valakas", day: 5, time: "21:00", icon: "🔥", style: "val" },
+            { name: "Antharas", day: 5, time: "21:00", icon: "🐉", style: "ant" }
+        ];
+
+        let epicMode = 'today'; // 'today' or 'upcoming'
+
+        function setEpicMode(mode) {
+            epicMode = mode;
+            // Update buttons
+            document.getElementById('btnToday').className = mode === 'today' ? 'btn-main active' : 'btn-main';
+            document.getElementById('btnUpcoming').className = mode === 'upcoming' ? 'btn-main active' : 'btn-main';
+            updateEpics();
+        }
+
+        function updateEpics() {
+            const select = document.getElementById('timezoneSelect');
+            const targetOffset = parseFloat(select.value || -(new Date().getTimezoneOffset() / 60));
+            const tbody = document.getElementById('epicBody');
+            tbody.innerHTML = '';
+
+            const now = new Date();
+            const utcTime = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const targetTime = new Date(utcTime + (3600000 * targetOffset));
+            
+            // 1. Calculate Next Occurrence for All
+            let fullList = epics.map(epic => {
+                const [h, m] = epic.time.split(':').map(Number);
+                let baseDate = new Date();
+                baseDate.setUTCHours(h - 3, m, 0, 0); 
+                let localDate = new Date(baseDate.getTime() + (3600000 * targetOffset));
+                
+                if (epic.day === -1) {
+                    if (localDate < targetTime) {
+                        localDate.setDate(localDate.getDate() + 1);
+                    }
+                } else {
+                    let serverNow = new Date(utcTime + (3600000 * 3));
+                    let serverBoss = new Date(serverNow);
+                    serverBoss.setHours(h, m, 0, 0);
+                    
+                    let dayDiff = epic.day - serverNow.getDay();
+                    if (dayDiff < 0) dayDiff += 7;
+                    if (dayDiff === 0 && serverBoss < serverNow) dayDiff = 7;
+                    
+                    serverBoss.setDate(serverBoss.getDate() + dayDiff);
+                    let bossUTC = serverBoss.getTime() - (3600000 * 3);
+                    localDate = new Date(bossUTC + (3600000 * targetOffset));
+                }
+
+                return { ...epic, sortDate: localDate };
+            });
+
+            // 2. Filter based on Mode
+            let displayList = [];
+            
+            if (epicMode === 'today') {
+                // Filter: Only show if Next Occurrence IS Today
+                // Note: The logic above finds the NEXT FUTURE occurrence.
+                // So if it's currently 22:00 and boss was 20:00, sortDate will be Tomorrow.
+                // Therefore, checking if sortDate is Today automatically excludes passed bosses.
+                displayList = fullList.filter(item => {
+                    return item.sortDate.getDate() === targetTime.getDate() && 
+                           item.sortDate.getMonth() === targetTime.getMonth() &&
+                           item.sortDate.getFullYear() === targetTime.getFullYear();
+                });
+            } else {
+                // Upcoming: Show all, sorted by date
+                displayList = fullList;
+            }
+
+            // Sort
+            displayList.sort((a, b) => a.sortDate - b.sortDate);
+
+            // Render
+            if (displayList.length === 0 && epicMode === 'today') {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="empty-state">
+                            <span class="empty-icon">😴</span>
+                            No Epic Bosses remaining for today.<br>Check "Upcoming" tab.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            displayList.forEach(item => {
+                const date = item.sortDate;
+                const dayName = days[date.getDay()];
+                const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                
+                const isToday = date.getDate() === targetTime.getDate() && date.getMonth() === targetTime.getMonth();
+                const dayBadge = isToday ? `<span class="day-badge">Today</span>` : dayName;
+                const rowClass = isToday ? 'today' : '';
+
+                const tr = document.createElement('tr');
+                tr.className = rowClass;
+                tr.innerHTML = `
+                    <td class="time-col" style="font-size:0.9em; width:20%">${dayBadge}</td>
+                    <td class="time-col" style="color:#d8b4fe">${timeStr}</td>
+                    <td class="event-col">
+                        <span class="icon ${item.style}">${item.icon}</span> 
+                        ${item.name}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
         // --- START ALL ---
         initSchedule();
         initDestruction();
+        setTimeout(updateEpics, 500);
 
     </script>
 </body>
