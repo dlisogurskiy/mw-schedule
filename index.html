@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MW Event Schedule</title>
+    <title>MW Event & Destruction Schedule</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@500;700&display=swap');
 
@@ -17,7 +17,16 @@
             min-height: 100vh;
             margin: 0;
             padding: 20px;
-            box-sizing: border-box; /* Ensures padding doesn't break width */
+            box-sizing: border-box;
+            touch-action: manipulation; 
+        }
+
+        .main-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
         }
 
         .container {
@@ -26,24 +35,45 @@
             border-radius: 15px;
             box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
             border: 2px solid #06b6d4;
-            /* --- CHANGED: FLEXIBLE WIDTH --- */
-            width: 100%; 
-            max-width: 450px; 
+            display: flex;
+            flex-direction: column;
             position: relative;
+        }
+
+        .destruct-container {
+            border-color: #f87171;
+            box-shadow: 0 0 20px rgba(248, 113, 113, 0.3);
         }
 
         h2 {
             text-align: center;
             color: #fff;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin: 0;
-            text-shadow: 0 0 10px #06b6d4;
+            letter-spacing: 1px;
+            margin: 0 0 10px 0;
+            font-size: 1.5em;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
         }
 
-        /* --- CONTROLS SECTION --- */
+        h3 {
+            text-align: center;
+            color: #cbd5e1;
+            font-size: 1.1em;
+            margin: 20px 0 10px 0;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.85em;
+            margin-bottom: 15px;
+        }
+
+        /* --- CONTROLS --- */
         .controls {
-            margin: 15px 0;
+            margin-bottom: 15px;
             text-align: center;
             display: flex;
             flex-direction: column;
@@ -54,42 +84,156 @@
             background-color: #0f172a;
             color: #67e8f9;
             border: 1px solid #334155;
-            padding: 8px;
+            padding: 10px;
             border-radius: 5px;
             font-family: 'Roboto', sans-serif;
             width: 100%;
             cursor: pointer;
             outline: none;
+            box-sizing: border-box;
+            text-align: center;
+            font-size: 1.1em;
         }
+
+        /* --- CUSTOM TIME PICKER --- */
+        .time-picker-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+
+        .tp-row {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .tp-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tp-btn {
+            background: #334155;
+            color: #f87171;
+            border: none;
+            width: 50px;
+            height: 35px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            opacity: 1;
+        }
+
+        .hidden { display: none !important; }
+
+        .tp-display {
+            font-family: monospace;
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #fff;
+            background: #1e293b;
+            padding: 5px 15px;
+            border-radius: 4px;
+            min-width: 60px;
+            text-align: center;
+            user-select: none;
+        }
+
+        .tp-colon {
+            font-size: 2em;
+            font-weight: bold;
+            color: #64748b;
+            margin-top: -4px;
+        }
+
+        /* Main Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn-main {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            transition: background 0.2s;
+        }
+
+        .btn-edit { background: #f87171; color: #0f172a; }
+        .btn-edit:hover { background: #ef4444; }
+        
+        .btn-reset { background: #334155; color: #cbd5e1; }
+        .btn-reset:hover { background: #475569; }
+
+        .shift-controls {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            margin-top: 5px;
+            width: 100%;
+        }
+        
+        .btn-shift {
+            background: #1e293b;
+            color: #cbd5e1;
+            border: 1px solid #334155;
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            flex: 1;
+        }
+        .btn-shift:hover { background: #334155; border-color: #f87171; color: #fff; }
 
         .clock-display {
             color: #94a3b8;
             font-size: 0.9em;
+            margin-top: 5px;
         }
 
         /* --- TABLE STYLES --- */
         table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 0 5px;
+            border-spacing: 0 4px;
         }
 
         th {
             color: #06b6d4;
-            padding: 12px;
+            padding: 8px;
             text-transform: uppercase;
             border-bottom: 2px solid #334155;
-            font-size: 1.1em;
+            font-size: 0.9em;
         }
 
+        .destruct-container th { color: #f87171; }
+
         td {
-            padding: 12px 15px;
-            background-color: #1e293b;
-            font-size: 1em;
+            padding: 10px 12px;
+            background-color: #0f172a;
+            font-size: 0.95em;
             transition: all 0.3s ease;
         }
 
-        /* Round corners for rows */
         tr td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
         tr td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
 
@@ -97,9 +241,9 @@
             text-align: center;
             font-weight: bold;
             color: #cbd5e1;
-            width: 30%;
+            width: 35%;
             font-family: monospace;
-            font-size: 1.2em;
+            font-size: 1.1em;
         }
 
         .event-col {
@@ -107,92 +251,164 @@
             font-weight: 500;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
-        /* Icon Colors */
         .icon { font-size: 1.2em; width: 25px; text-align: center; }
         .snow { color: #67e8f9; }
         .football { color: #4ade80; }
         .koth { color: #fbbf24; }
         .tvt { color: #f87171; }
         .hero { color: #a855f7; }
+        .skull { color: #f87171; }
 
-        /* --- ACTIVE EVENT STYLES --- */
+        /* --- ACTIVE / PAST STYLES --- */
         tr.active td {
             background-color: #0f3847;
             color: #fff;
             border-top: 2px solid #4ade80;
             border-bottom: 2px solid #4ade80;
         }
-        
         tr.active td:first-child { border-left: 2px solid #4ade80; }
         tr.active td:last-child { border-right: 2px solid #4ade80; }
+        
+        .destruct-container tr.active td {
+            background-color: #450a0a;
+            border-color: #f87171;
+            color: #fff;
+        }
+        .destruct-container tr.active td:first-child { border-left: 2px solid #f87171; }
+        .destruct-container tr.active td:last-child { border-right: 2px solid #f87171; }
 
         tr.active { animation: pulse 2s infinite; }
-
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
-            70% { box-shadow: 0 0 10px 10px rgba(74, 222, 128, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+            0% { opacity: 1; }
+            50% { opacity: 0.8; }
+            100% { opacity: 1; }
         }
 
         .active-badge {
-            font-size: 0.7em;
+            font-size: 0.65em;
             background: #4ade80;
             color: #0f172a;
-            padding: 2px 6px;
+            padding: 2px 5px;
             border-radius: 4px;
             font-weight: bold;
             margin-left: auto;
         }
 
-        /* --- NEW: MOBILE RESPONSIVENESS --- */
-        @media (max-width: 480px) {
-            body {
-                padding: 10px;
-            }
-            .container {
-                padding: 15px 10px; /* Less padding on sides */
-            }
-            th, td {
-                padding: 10px 5px; /* Tighter cells */
-                font-size: 0.95em; /* Slightly smaller font */
-            }
-            h2 {
-                font-size: 1.4em;
-            }
-            .icon {
-                width: 20px;
-            }
+        /* --- LOCATION LIST STYLES --- */
+        .loc-table td {
+            font-size: 0.85em;
+            padding: 6px 10px;
+            color: #cbd5e1;
+        }
+        .loc-lvl { text-align: center; color: #fbbf24; font-weight: bold; width: 20%; }
+        .loc-count { text-align: center; color: #f87171; font-weight: bold; width: 15%; }
+        .loc-name { text-align: left; }
+
+        @media (max-width: 768px) {
+            body { align-items: flex-start; }
+            .main-wrapper { grid-template-columns: 1fr; max-width: 450px; }
+            h2 { font-size: 1.3em; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>Event Schedule</h2>
+    <div class="main-wrapper">
         
-        <div class="controls">
-            <select id="timezoneSelect" onchange="updateSchedule()">
-                </select>
-            <div class="clock-display" id="clock">Loading time...</div>
+        <div class="container">
+            <h2>Event Schedule</h2>
+            
+            <div class="controls">
+                <select id="timezoneSelect" onchange="handleTimezoneChange()">
+                    </select>
+                <div class="clock-display" id="clock">Loading time...</div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Event</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduleBody">
+                    </tbody>
+            </table>
         </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Time</th>
-                    <th>Event</th>
-                </tr>
-            </thead>
-            <tbody id="scheduleBody">
-                </tbody>
-        </table>
+        <div class="container destruct-container">
+            <h2>Destruction</h2>
+            <div class="subtitle">Respawn: Every 4 Hours</div>
+            
+            <div class="controls">
+                <label style="color:#cbd5e1; font-size:0.9em;">Anchor Time (Next/Last):</label>
+                
+                <div class="time-picker-wrapper">
+                    <div class="tp-row hidden" id="arrowsUp">
+                        <div class="tp-col"><button class="tp-btn" onclick="adjustTime(1, 0)">▲</button></div>
+                        <div style="width:10px;"></div>
+                        <div class="tp-col"><button class="tp-btn" onclick="adjustTime(0, 1)">▲</button></div>
+                    </div>
+
+                    <div class="tp-row">
+                        <div class="tp-display" id="displayHH">00</div>
+                        <div class="tp-colon">:</div>
+                        <div class="tp-display" id="displayMM">34</div>
+                    </div>
+
+                    <div class="tp-row hidden" id="arrowsDown">
+                        <div class="tp-col"><button class="tp-btn" onclick="adjustTime(-1, 0)">▼</button></div>
+                        <div style="width:10px;"></div>
+                        <div class="tp-col"><button class="tp-btn" onclick="adjustTime(0, -1)">▼</button></div>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-main btn-edit" id="btnEdit" onclick="toggleEditMode()">Edit</button>
+                    <button class="btn-main btn-reset" onclick="resetDestruction()">Reset</button>
+                </div>
+
+                <div class="shift-controls hidden" id="shiftControls">
+                    <button class="btn-shift" onclick="adjustTime(0, -1)">-1m</button>
+                    <button class="btn-shift" onclick="adjustTime(0, 1)">+1m</button>
+                    <button class="btn-shift" onclick="adjustTime(0, 5)">+5m</button>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Schedule</th>
+                        <th>Info</th>
+                    </tr>
+                </thead>
+                <tbody id="destructBody">
+                    </tbody>
+            </table>
+
+            <h3>Spawn Locations</h3>
+            <table class="loc-table">
+                <thead>
+                    <tr>
+                        <th>Lvl</th>
+                        <th>RBs</th>
+                        <th style="text-align:left; padding-left:10px;">Location</th>
+                    </tr>
+                </thead>
+                <tbody id="locBody">
+                    </tbody>
+            </table>
+        </div>
+
     </div>
 
     <script>
-        // --- MASTER DATA (UTC+3) ---
+        // ==========================================
+        //         PART 1: EVENT SCHEDULE
+        // ==========================================
         const baseEvents = [
             { time: "02:00", name: "Snow Fight", type: "snow", icon: "❄️" },
             { time: "04:00", name: "Football", type: "football", icon: "⚽" },
@@ -204,7 +420,7 @@
             { time: "16:00", name: "Team vs Team", type: "tvt", icon: "⚔️" },
             { time: "18:00", name: "Football", type: "football", icon: "⚽" },
             { time: "19:00", name: "King of the Hill", type: "koth", icon: "👑" },
-            { time: "20:05", name: "Team vs Team", type: "tvt", icon: "⚔️" },
+            { time: "20:05", name: "Team vs Team", type: "tvt", icon: "⚔️" }, 
             { time: "21:00", name: "Snow Fight", type: "snow", icon: "❄️" },
             { time: "21:30", name: "Last Hero", type: "hero", icon: "🏆" },
             { time: "22:00", name: "Football", type: "football", icon: "⚽" },
@@ -212,9 +428,8 @@
             { time: "00:00", name: "Team vs Team", type: "tvt", icon: "⚔️" } 
         ];
 
-        const BASE_OFFSET = 3; // The data above is in UTC+3
+        const BASE_OFFSET = 3; 
 
-        // --- TIMEZONE LIST ---
         const timezones = [
             { label: "Hawaii (UTC-10)", offset: -10 },
             { label: "Los Angeles / PT (UTC-8)", offset: -8 },
@@ -232,13 +447,10 @@
             { label: "Sydney (UTC+11)", offset: 11 }
         ];
 
-        function init() {
+        function initSchedule() {
             const select = document.getElementById('timezoneSelect');
-            
-            // 1. Determine User's Local Offset
             const localOffset = -(new Date().getTimezoneOffset() / 60);
             
-            // Check if local offset is in our list, if not, add it dynamically as "Local"
             const knownTz = timezones.find(tz => tz.offset === localOffset);
             let defaultLabel = `Local Time (UTC${localOffset >= 0 ? '+' : ''}${localOffset})`;
             
@@ -249,7 +461,6 @@
                 select.add(localOption);
             }
 
-            // 2. Populate Dropdown
             timezones.forEach(tz => {
                 const opt = document.createElement('option');
                 opt.value = tz.offset;
@@ -258,50 +469,44 @@
                 select.add(opt);
             });
 
-            // 3. Initial Render
             updateSchedule();
-            
-            // 4. Update clock every minute
             setInterval(updateSchedule, 60000);
+        }
+
+        function handleTimezoneChange() {
+            updateSchedule();
+            calcDestruction(); 
         }
 
         function updateSchedule() {
             const select = document.getElementById('timezoneSelect');
             const targetOffset = parseFloat(select.value);
             const tbody = document.getElementById('scheduleBody');
-            
-            tbody.innerHTML = ''; // Clear current list
+            tbody.innerHTML = ''; 
 
-            // Process events
             let displayEvents = baseEvents.map(event => {
                 const [h, m] = event.time.split(':').map(Number);
                 let totalMinutes = (h * 60 + m) - (BASE_OFFSET * 60) + (targetOffset * 60);
-                
                 if (totalMinutes < 0) totalMinutes += 1440;
                 if (totalMinutes >= 1440) totalMinutes -= 1440;
 
                 const newH = Math.floor(totalMinutes / 60);
                 const newM = totalMinutes % 60;
-                
                 const timeString = `${String(newH).padStart(2, '0')}:${String(newM).padStart(2, '0')}`;
                 
                 return { ...event, displayTime: timeString, minutes: totalMinutes };
             });
 
-            // Sort events by time
             displayEvents.sort((a, b) => a.minutes - b.minutes);
 
-            // Current Time Calculation for Highlighting
             const now = new Date();
             const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
             const currentTargetMinutes = utcMinutes + (targetOffset * 60);
             
-            // Normalize current time to 0-1439 range
             let normalizedNow = currentTargetMinutes;
             while (normalizedNow < 0) normalizedNow += 1440;
             while (normalizedNow >= 1440) normalizedNow -= 1440;
 
-            // Find next event
             let nextEventIndex = -1;
             for (let i = 0; i < displayEvents.length; i++) {
                 if (displayEvents[i].minutes > normalizedNow) {
@@ -311,34 +516,224 @@
             }
             if (nextEventIndex === -1 && displayEvents.length > 0) nextEventIndex = 0;
 
-            // Render Rows
             displayEvents.forEach((event, index) => {
                 const tr = document.createElement('tr');
-                if (index === nextEventIndex) {
-                    tr.className = 'active';
-                }
-
-                const badge = index === nextEventIndex ? '<span class="active-badge">NEXT UP</span>' : '';
-
+                if (index === nextEventIndex) tr.className = 'active';
+                const badge = index === nextEventIndex ? '<span class="active-badge">NEXT</span>' : '';
                 tr.innerHTML = `
                     <td class="time-col">${event.displayTime}</td>
-                    <td class="event-col">
-                        <span class="icon ${event.type}">${event.icon}</span> 
-                        ${event.name}
-                        ${badge}
-                    </td>
+                    <td class="event-col"><span class="icon ${event.type}">${event.icon}</span> ${event.name} ${badge}</td>
                 `;
                 tbody.appendChild(tr);
             });
 
-            // Update Clock Display
             const nowH = Math.floor(normalizedNow / 60);
             const nowM = Math.floor(normalizedNow % 60);
             document.getElementById('clock').innerText = 
-                `Current Selected Time: ${String(nowH).padStart(2, '0')}:${String(nowM).padStart(2, '0')}`;
+                `Current Time: ${String(nowH).padStart(2, '0')}:${String(nowM).padStart(2, '0')}`;
         }
 
-        init();
+        // ==========================================
+        //      PART 2: DESTRUCTION (Smart Filter)
+        // ==========================================
+        const DEFAULT_DESTRUCT_TIME = "00:34";
+        
+        let destructH = 0;
+        let destructM = 34;
+        let isEditing = false;
+
+        function initDestruction() {
+            const savedTime = localStorage.getItem('destructTime');
+            if (savedTime) {
+                const [h, m] = savedTime.split(':').map(Number);
+                destructH = h;
+                destructM = m;
+            } else {
+                calculateSmartDefault();
+            }
+            updatePickerDisplay();
+            calcDestruction();
+            renderLocations();
+            setInterval(calcDestruction, 60000); 
+        }
+
+        function calculateSmartDefault() {
+            let anchorMins = 0 * 60 + 34;
+            
+            // Get Current Time (Timezone Aware)
+            const select = document.getElementById('timezoneSelect');
+            const targetOffset = parseFloat(select.value || -(new Date().getTimezoneOffset() / 60));
+            const now = new Date();
+            const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+            let currentMins = utcMinutes + (targetOffset * 60);
+            while (currentMins < 0) currentMins += 1440;
+            while (currentMins >= 1440) currentMins -= 1440;
+
+            let guard = 0;
+            while (anchorMins < currentMins && guard < 12) {
+                anchorMins += 240;
+                guard++;
+            }
+            while (anchorMins >= 1440) anchorMins -= 1440;
+
+            destructH = Math.floor(anchorMins / 60);
+            destructM = anchorMins % 60;
+        }
+
+        function toggleEditMode() {
+            isEditing = !isEditing;
+            const arrowsUp = document.getElementById('arrowsUp');
+            const arrowsDown = document.getElementById('arrowsDown');
+            const shiftControls = document.getElementById('shiftControls');
+            const btnEdit = document.getElementById('btnEdit');
+
+            if (isEditing) {
+                arrowsUp.classList.remove('hidden');
+                arrowsDown.classList.remove('hidden');
+                shiftControls.classList.remove('hidden');
+                btnEdit.innerText = "Done";
+                btnEdit.style.background = "#4ade80";
+                btnEdit.style.color = "#0f172a";
+            } else {
+                arrowsUp.classList.add('hidden');
+                arrowsDown.classList.add('hidden');
+                shiftControls.classList.add('hidden');
+                btnEdit.innerText = "Edit";
+                btnEdit.style.background = "#f87171";
+                btnEdit.style.color = "#0f172a";
+            }
+        }
+
+        function updatePickerDisplay() {
+            document.getElementById('displayHH').innerText = String(destructH).padStart(2, '0');
+            document.getElementById('displayMM').innerText = String(destructM).padStart(2, '0');
+            const timeStr = `${String(destructH).padStart(2, '0')}:${String(destructM).padStart(2, '0')}`;
+            localStorage.setItem('destructTime', timeStr);
+        }
+
+        function adjustTime(deltaH, deltaM) {
+            let newH = destructH + deltaH;
+            let newM = destructM + deltaM;
+
+            while (newM >= 60) { newM -= 60; newH++; }
+            while (newM < 0) { newM += 60; newH--; }
+            while (newH >= 24) newH -= 24;
+            while (newH < 0) newH += 24;
+
+            destructH = newH;
+            destructM = newM;
+
+            updatePickerDisplay();
+            calcDestruction();
+        }
+
+        function resetDestruction() {
+            calculateSmartDefault();
+            updatePickerDisplay();
+            calcDestruction();
+        }
+
+        function calcDestruction() {
+            const tbody = document.getElementById('destructBody');
+            tbody.innerHTML = '';
+
+            // 1. Get Base Anchor from Picker
+            let anchorMins = destructH * 60 + destructM;
+            
+            // 2. Get Current Time (Timezone Aware)
+            const select = document.getElementById('timezoneSelect');
+            const targetOffset = parseFloat(select.value || -(new Date().getTimezoneOffset() / 60));
+            const now = new Date();
+            const utcMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+            
+            // Normalize current time to 0-1440 range based on selected timezone
+            let currentMins = utcMinutes + (targetOffset * 60);
+            while (currentMins < 0) currentMins += 1440;
+            while (currentMins >= 1440) currentMins -= 1440;
+
+            // 3. Smart Fast-Forward:
+            // If the Anchor is currently BEHIND the current time, add 4h (240m) until it's future.
+            // Edge Case: If Input is 23:00 and Now is 01:00, 23:00 > 01:00.
+            // Logic: Assume the input refers to "Start of Cycle" (potentially yesterday).
+            // If Anchor > Current, subtract 24h to treat it as yesterday, then add 4h steps.
+            
+            let effectiveAnchor = anchorMins;
+            if (effectiveAnchor > currentMins) {
+                effectiveAnchor -= 1440; // Treat as yesterday
+            }
+
+            // Loop until we find the first FUTURE spawn
+            while (effectiveAnchor <= currentMins) {
+                effectiveAnchor += 240;
+            }
+
+            // 4. Generate List from that point
+            let tempMins = effectiveAnchor;
+
+            for(let i=1; i<=5; i++) {
+                let displayMins = tempMins;
+                while(displayMins >= 1440) displayMins -= 1440;
+                while(displayMins < 0) displayMins += 1440;
+                
+                const h = Math.floor(displayMins / 60);
+                const m = displayMins % 60;
+                const timeStr = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                
+                const tr = document.createElement('tr');
+                if (i === 1) tr.className = 'active';
+
+                tr.innerHTML = `
+                    <td class="time-col" style="color:#fca5a5">${timeStr}</td>
+                    <td class="event-col"><span class="icon skull">💀</span> Spawn #${i}</td>
+                `;
+                tbody.appendChild(tr);
+
+                tempMins += 240; // Add 4h for next row
+            }
+        }
+
+        // ==========================================
+        //      PART 3: LOCATIONS DATA
+        // ==========================================
+        const locations = [
+            { name: "Dark Elf Village", count: 1, lvl: 30 },
+            { name: "Orc Village", count: 1, lvl: 30 },
+            { name: "Dwarven Village", count: 2, lvl: 30 }, 
+            { name: "Gludin Village", count: 3, lvl: 30 },
+            { name: "Heine", count: 2, lvl: 45 },
+            { name: "Dion", count: 3, lvl: 45 },
+            { name: "Gludio", count: 3, lvl: 45 },
+            { name: "Schuttgart", count: 1, lvl: 60 }, 
+            { name: "Giran", count: 3, lvl: 60 },
+            { name: "Oren", count: 3, lvl: 60 },
+            { name: "Aden", count: 3, lvl: 75 },
+            { name: "Goddard", count: 2, lvl: 80 }
+        ];
+
+        function renderLocations() {
+            locations.sort((a, b) => {
+                if (a.lvl !== b.lvl) return a.lvl - b.lvl;
+                return a.count - b.count;
+            });
+
+            const tbody = document.getElementById('locBody');
+            tbody.innerHTML = '';
+            
+            locations.forEach(loc => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="loc-lvl">${loc.lvl}</td>
+                    <td class="loc-count">${loc.count}</td>
+                    <td class="loc-name">${loc.name}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // --- START ALL ---
+        initSchedule();
+        initDestruction();
+
     </script>
 </body>
 </html>
