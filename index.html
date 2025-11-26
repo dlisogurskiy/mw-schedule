@@ -832,7 +832,6 @@ function updateEpics() {
             const now = new Date();
             
             // 2. Calculate "Target Now" (for checking "Today")
-            // This creates a date object shifted to the selected timezone
             const targetNowTimestamp = now.getTime() + (now.getTimezoneOffset() * 60000) + (targetOffset * 3600000);
             const targetNowDate = new Date(targetNowTimestamp);
 
@@ -840,42 +839,28 @@ function updateEpics() {
                 const [h, m] = epic.time.split(':').map(Number);
                 
                 // --- STEP A: Find the boss time in Real UTC ---
-                // Server is UTC+3. So Boss UTC Hour = Server Hour - 3.
-                // We construct a Date object for "Today's Spawn" in UTC.
                 let spawnDate = new Date();
                 spawnDate.setUTCHours(h - 3, m, 0, 0);
 
                 // --- STEP B: Handle Weekly Days ---
                 if (epic.day !== -1) {
-                    // It's a weekly boss. Find the correct date relative to the Server.
-                    // 1. Get Server Time (Current UTC + 3 hours)
                     const serverNow = new Date(Date.now() + 3600000 * 3);
                     const serverDay = serverNow.getUTCDay(); // 0=Sun...6=Sat
-                    
-                    // 2. Calculate difference
                     let dayDiff = epic.day - serverDay;
-                    
-                    // 3. If the day passed (or is today but time passed), move to next week
-                    // Check if specific time passed is handled below, so just align days first
                     if (dayDiff < 0) dayDiff += 7;
-                    
-                    // Adjust our spawnDate to match that day
                     spawnDate.setUTCDate(spawnDate.getUTCDate() + dayDiff);
                 }
 
                 // --- STEP C: Check if it has PASSED ---
-                // If the calculated spawn is in the past relative to Real Now, move it forward
                 if (spawnDate < now) {
                     if (epic.day === -1) {
-                        spawnDate.setUTCDate(spawnDate.getUTCDate() + 1); // Daily -> Tomorrow
+                        spawnDate.setUTCDate(spawnDate.getUTCDate() + 1); 
                     } else {
-                        spawnDate.setUTCDate(spawnDate.getUTCDate() + 7); // Weekly -> Next Week
+                        spawnDate.setUTCDate(spawnDate.getUTCDate() + 7); 
                     }
                 }
 
                 // --- STEP D: Create Display Date ---
-                // Shift the UTC time by the User's Offset to show "Local" time
-                // We use a trick: create a new date shifted by the offset, then read it as UTC
                 const displayTimestamp = spawnDate.getTime() + (targetOffset * 3600000);
                 const displayDate = new Date(displayTimestamp);
 
@@ -890,24 +875,18 @@ function updateEpics() {
             let displayList = [];
             
             if (epicMode === 'today') {
-                // Filter: Only show if the Display Date is actually "Today" in user's selected timezone
+                // Filter: Only show if the Display Date is actually "Today"
                 displayList = fullList.filter(item => {
                     return item.displayDate.getUTCDate() === targetNowDate.getUTCDate() && 
                            item.displayDate.getUTCMonth() === targetNowDate.getUTCMonth();
                 });
-                // Sort Today chronologically
-                displayList.sort((a, b) => a.realSpawnDate - b.realSpawnDate);
             } else {
                 // Upcoming: Show everything
                 displayList = fullList;
-                // Sort by Day of Week (Mon -> Sun)
-                displayList.sort((a, b) => {
-                    let dayA = a.displayDate.getUTCDay() || 7; 
-                    let dayB = b.displayDate.getUTCDay() || 7;
-                    if (dayA !== dayB) return dayA - dayB;
-                    return a.realSpawnDate - b.realSpawnDate;
-                });
             }
+
+            // --- SORTING FIXED: Always Chronological (Soonest First) ---
+            displayList.sort((a, b) => a.realSpawnDate - b.realSpawnDate);
 
             // 4. Render
             if (displayList.length === 0 && epicMode === 'today') {
@@ -926,8 +905,6 @@ function updateEpics() {
             
             displayList.forEach(item => {
                 const date = item.displayDate;
-                // Note: We use getUTC methods because we manually shifted the timestamp 
-                // to represent the selected timezone
                 const dayName = days[date.getUTCDay()];
                 const hh = String(date.getUTCHours()).padStart(2, '0');
                 const mm = String(date.getUTCMinutes()).padStart(2, '0');
